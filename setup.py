@@ -11,11 +11,11 @@ install_reqs = parse_requirements(reqs_path, session=False)
 requires = [str(ir.req) for ir in install_reqs]
 
 setup(
-    name='paapi',
+    name='ncc_paapi',
     version='0.0.1',
     description='Abstraction classes to access the PA API',
     author='NCC Group',
     packages=['paapi'],
-    package_dir={'': 'src'},
-    install_requires=requires
+    install_requires=requires,
+    url='https://github.com/ncc-tools/python-pa-api'
 )

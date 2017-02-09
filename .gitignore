@@ -8,3 +8,4 @@ config-local.ini
 *.pyc
 .DS_Store
 .cache
+dist

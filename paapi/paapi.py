@@ -23,6 +23,9 @@ import urllib3
 # Suppress custom SSL certificates warning. Otherwise they're printed once per endpoint call.
 urllib3.disable_warnings()
 
+class AuthenticationError(Exception):
+    pass
+
 class PaAuth:
     """
     Authenticate with PA's Oauth.
@@ -36,11 +39,14 @@ class PaAuth:
     _auth_token = None
     _token_expiry = None
 
-    def __init__(self, username, password, basic_auth=None):
+    def __init__(self, username, password, basic_auth=None, poolmanager=None):
         self.username = username
         self.password = password
         self.basic_auth = basic_auth
-        self.http = urllib3.PoolManager()
+        if poolmanager is not None:
+            self.http = poolmanager
+        else:
+            self.http = urllib3.PoolManager()
 
     @contextmanager
     def authenticate(self):
@@ -50,7 +56,7 @@ class PaAuth:
         if self._auth_token is None or self._token_expiry < time.time():
             self._perform_auth()
 
-        return self._auth_token
+        yield self._auth_token
 
     def _perform_auth(self):
         if self.basic_auth is not None:
@@ -69,8 +75,10 @@ class PaAuth:
             headers
         )
 
-        if response.status != 200:
-            raise Exception("Couldn't authenticate to PA API")
+        if response.status == 403:
+            raise AuthenticationError("Couldn't authenticate to PA API")
+        elif response.status == 500:
+            raise Exception("Error communicating with API server")
 
         data = json.loads(response.data.decode())
         self._auth_token = data['access_token']
@@ -86,10 +94,13 @@ class PaApi:
     auth = None
     http = None
 
-    def __init__(self, auth, realm):
+    def __init__(self, auth, realm, poolmanager=None):
         self.auth_realm = realm
         self.auth = auth
-        self.http = urllib3.PoolManager()
+        if poolmanager is not None:
+            self.http = poolmanager
+        else:
+            self.http = urllib3.PoolManager()
 
     def _query_api(self, method, url, fields=None):
         """

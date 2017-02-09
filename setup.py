@@ -3,7 +3,7 @@
 """NCC Performance Analyser API to ElasticSearch coupler"""
 
 import os
-from setuptools import setup, find_packages
+from setuptools import setup
 from pip.req import parse_requirements
 
 reqs_path = os.path.dirname(os.path.realpath(__file__)) + '/requirements/release.txt'
@@ -15,7 +15,7 @@ setup(
     version='0.0.1',
     description='Abstraction classes to access the PA API',
     author='NCC Group',
-    packages=find_packages('src'),
+    packages=['paapi'],
     package_dir={'': 'src'},
     install_requires=requires
 )

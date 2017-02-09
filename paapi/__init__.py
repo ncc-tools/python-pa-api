@@ -1,2 +1,2 @@
-from paapi import PaAuth
-from paapi import PaApi
+from paapi.paapi import PaAuth
+from paapi.paapi import PaApi

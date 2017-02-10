@@ -10,6 +10,7 @@ setup(
     version='0.0.3',
     description='Abstraction classes to access the PA API',
     author='NCC Group',
+    license="Apache License 2.0",
     packages=['paapi'],
     install_requires=['urllib3==1.19.1'],
     url='https://github.com/ncc-tools/python-pa-api'

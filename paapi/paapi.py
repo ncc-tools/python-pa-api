@@ -16,6 +16,7 @@
 
 from contextlib import contextmanager
 import json
+import logging
 import time
 from urllib.parse import urlencode, urlparse, urlunparse
 import urllib3
@@ -23,7 +24,17 @@ import urllib3
 # Suppress custom SSL certificates warning. Otherwise they're printed once per endpoint call.
 urllib3.disable_warnings()
 
+class ApiQueryError(Exception):
+    """
+    An error occured when querying the API.
+    """
+    def __init__(self, message, status):
+        super().__init__("({0}) {1}".format(status, message))
+
 class AuthenticationError(Exception):
+    """
+    Error while authenticating with the API.
+    """
     pass
 
 class PaAuth:
@@ -64,6 +75,8 @@ class PaAuth:
         else:
             headers = None
 
+        logging.info('Authenticating with PA API')
+
         response = self.http.request(
             'POST',
             '%s/authorisation/token' % (self.BASE_URL,),
@@ -76,9 +89,13 @@ class PaAuth:
         )
 
         if response.status == 403:
+            logging.warning("Failed to authenticate with API")
             raise AuthenticationError("Couldn't authenticate to PA API")
         elif response.status == 500:
-            raise Exception("Error communicating with API server")
+            logging.critical("PA API returned a service error")
+            raise AuthenticationError("Error communicating with API server")
+        else:
+            logging.info("Authentication successful %d", response.status)
 
         data = json.loads(response.data.decode())
         self._auth_token = data['access_token']
@@ -107,13 +124,16 @@ class PaApi:
         Abstracts http queries to the API
         """
         with self.auth.authenticate() as token:
+            logging.debug('PA Authentication returned token %s', token)
             headers = {
                 'Authorization': 'Bearer %s' % (token,),
                 'Realm': self.auth_realm
             }
+            logging.info('[%s] %s', method, url)
             response = self.http.request(method, url, fields, headers)
             if response.status != 200:
-                raise Exception("Failed to get API data")
+                logging.warning('Got non-200 HTTP status from API: %d', response.status)
+                raise ApiQueryError("Failed to get API data", response.status)
             return json.loads(response.data.decode())
 
     def _build_url(self, endpoint, params=None):
@@ -144,7 +164,7 @@ class PaApi:
         }
         if start_date is not None:
             params['fromDate'] = start_date
-        data = self._query_api('GET', self._build_url('testruns', params))
+        data = self._query_api('GET', self._build_url('testRuns', params))
         return data['results']
 
     def get_pageobjects_for_testrun(self, testrun_uri):

@@ -41,7 +41,7 @@ class PaAuth:
     """
     Authenticate with PA's Oauth.
     """
-    BASE_URL = 'https://paapi.siteconfidence.co.uk'
+    BASE_URL = 'https://api.nccgroup-webperf.com'
     http = None
     username = None
     password = None
@@ -105,7 +105,7 @@ class PaApi:
     """
     Abstraction to access the PA API
     """
-    API_URL = 'https://paapi.siteconfidence.co.uk/pa/1'
+    API_URL = 'https://api.nccgroup-webperf.com/pa/1'
     PAGE_SIZE = 1000
     auth_realm = '617523'
     auth = None

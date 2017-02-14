@@ -7,7 +7,7 @@ from setuptools import setup
 
 setup(
     name='ncc_paapi',
-    version='0.0.4',
+    version='0.0.5',
     description='Abstraction classes to access the PA API',
     author='NCC Group',
     license="Apache License 2.0",

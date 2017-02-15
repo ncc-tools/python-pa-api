@@ -70,28 +70,27 @@ class PaAuth:
         yield self._auth_token
 
     def _perform_auth(self):
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         if self.basic_auth is not None:
-            headers = {'Authorization': 'Basic %s' % (self.basic_auth,)}
-        else:
-            headers = None
+            headers['Authorization'] = 'Basic %s' % (self.basic_auth,)
 
         logging.info('Authenticating with PA API')
 
         response = self.http.request(
             'POST',
             '%s/authorisation/token' % (self.BASE_URL,),
-            {
+            body=urlencode({
                 'username': self.username,
                 'password': self.password,
                 'grant_type': 'password'
-            },
-            headers
+            }),
+            headers=headers
         )
 
-        if response.status == 403:
+        if response.status >= 400 and response.status < 500:
             logging.warning("Failed to authenticate with API")
             raise AuthenticationError("Couldn't authenticate to PA API")
-        elif response.status == 500:
+        elif response.status >= 500:
             logging.critical("PA API returned a service error")
             raise AuthenticationError("Error communicating with API server")
         else:

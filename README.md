@@ -7,6 +7,7 @@ The PA library provides access to NCC's Performance Analyser API.
 
 - Python 3.5, 3.6
 - urllib3
+- certifi
 
 ## Installing
 

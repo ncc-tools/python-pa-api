@@ -19,10 +19,9 @@ import json
 import logging
 import time
 from urllib.parse import urlencode, urlparse, urlunparse
+import certifi
 import urllib3
 
-# Suppress custom SSL certificates warning. Otherwise they're printed once per endpoint call.
-urllib3.disable_warnings()
 
 class ApiQueryError(Exception):
     """
@@ -57,7 +56,7 @@ class PaAuth:
         if poolmanager is not None:
             self.http = poolmanager
         else:
-            self.http = urllib3.PoolManager()
+            self.http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
     @contextmanager
     def authenticate(self):
@@ -106,7 +105,7 @@ class PaApi:
     """
     API_URL = 'https://api.nccgroup-webperf.com/pa/1'
     PAGE_SIZE = 1000
-    auth_realm = '617523'
+    auth_realm = None
     auth = None
     http = None
 
@@ -116,7 +115,7 @@ class PaApi:
         if poolmanager is not None:
             self.http = poolmanager
         else:
-            self.http = urllib3.PoolManager()
+            self.http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
     def _query_api(self, method, url, fields=None):
         """

@@ -29,7 +29,7 @@ python setup.py install
 ```python
 from paapi import PaAuth, PaApi
 
-auth = PaAuth('username', 'password', 'basic_auth')
+auth = PaAuth('username', 'password', 'client_username', 'client_password')
 realm = 12345
 api = PaApi(auth, realm)
 

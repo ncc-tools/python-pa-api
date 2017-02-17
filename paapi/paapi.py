@@ -54,8 +54,8 @@ class PaAuth:
                  client_password=None, poolmanager=None):
         self.username = username
         self.password = password
-        self.basic_auth = b64encode(('%s:%s' % (client_username, client_password))
-                                    .encode()).decode()
+        credentials = '{}:{}'.format(client_username, client_password)
+        self.basic_auth = b64encode(credentials.encode()).decode()
         if poolmanager is not None:
             self.http = poolmanager
         else:

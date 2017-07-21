@@ -43,7 +43,7 @@ class MockPoolmanager:
         """
         return MockPoolmanager(callback, MockPoolmanager.EVAL)
 
-    def request(self, method, url, fields, headers):
+    def request(self, method, url, fields=None, headers=None, body=None):
         """
         Mock and HTTP request
         """
@@ -53,6 +53,9 @@ class MockPoolmanager:
             raise self._next_response
         elif self._next_action == self.EVAL:
             return self._next_response(method, url, fields, headers)
+    
+    def request_encode_body(self, *args, **kwargs):
+        return self.request(*args, **kwargs)
 
 class MockPaAuth():
     token = None

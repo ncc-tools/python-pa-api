@@ -78,10 +78,10 @@ class PaAuth:
 
         logging.info('Authenticating with PA API')
 
-        response = self.http.request(
+        response = self.http.request_encode_body(
             'POST',
             '%s/authorisation/token' % (self.BASE_URL,),
-            body=urlencode({
+            fields=urlencode({
                 'username': self.username,
                 'password': self.password,
                 'grant_type': 'password'
@@ -111,7 +111,6 @@ class PaApi:
     auth_realm = None
     auth = None
     http = None
-
     def __init__(self, auth, realm, poolmanager=None):
         self.auth_realm = realm
         self.auth = auth
@@ -119,8 +118,7 @@ class PaApi:
             self.http = poolmanager
         else:
             self.http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
-
-    def _query_api(self, method, url, fields=None):
+    def _query_api(self, method, url, fields=None, extra_headers=None, req_body=None):
         """
         Abstracts http queries to the API
         """
@@ -130,13 +128,19 @@ class PaApi:
                 'Authorization': 'Bearer %s' % (token,),
                 'Realm': self.auth_realm
             }
+            if extra_headers is not None:
+                headers.update(extra_headers)
+
             logging.info('[%s] %s', method, url)
-            response = self.http.request(method, url, fields, headers)
+            if req_body is not None:
+                response = self.http.request(method, url, fields, headers, body=req_body)
+            else:
+                response = self.http.request(method, url, fields, headers)                
             if response.status != 200:
+                print(response.data)
                 logging.warning('Got non-200 HTTP status from API: %d', response.status)
                 raise ApiQueryError("Failed to get API data", response.status)
             return json.loads(response.data.decode())
-
     def _build_url(self, endpoint, params=None):
         if params is None:
             params = {}
@@ -144,7 +148,6 @@ class PaApi:
         urlinfo[2] = '%s/%s' % (urlinfo[2], endpoint)
         urlinfo[4] = urlencode(params)
         return urlunparse(urlinfo)
-
     def get_all_jobtemplates(self):
         """
         Retrieves the list of jobTemplates for the current realm.
@@ -154,7 +157,6 @@ class PaApi:
         })
         data = self._query_api('GET', endpoint)
         return data['results']
-
     def get_testruns_for_jobtemplate(self, jobtemplate_uri, start_date=None):
         """
         Retrieves a bunch of test runs for a specific job template.
@@ -167,7 +169,6 @@ class PaApi:
             params['fromDate'] = start_date
         data = self._query_api('GET', self._build_url('testRuns', params))
         return data['results']
-
     def get_pageobjects_for_testrun(self, testrun_uri):
         """
         Retrieves pageobject data for a particular testrun.
@@ -177,4 +178,26 @@ class PaApi:
             'paginationPageSize': self.PAGE_SIZE
         })
         data = self._query_api('GET', endpoint)
+        return data['results']
+    def create_job_template(self, template):
+        """
+        Creates a job template
+        """
+        endpoint = self._build_url('jobTemplates')
+        data = self._query_api('POST',
+                               endpoint,
+                               None,
+                               {'Content-Type': 'application/json'},
+                               json.dumps(template))
+        return data['results']
+    def create_job(self, job_template_uri):
+        """
+        Creates a job
+        """
+        endpoint = self._build_url('jobs')
+        data = self._query_api('POST',
+                               endpoint,
+                               None,
+                               {'Content-Type': 'application/json'},
+                               json.dumps({'jobTemplateUri': job_template_uri}))
         return data['results']

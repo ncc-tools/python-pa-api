@@ -37,3 +37,19 @@ def test_get_pageobjects_for_testrun():
     assert len(objects) == 2, "Parsed objects isn't the right size"
     assert objects[0]['url'] == 'http://site.com/first-object'
     assert objects[1]['url'] == 'http://site.com/second-object'
+
+def test_create_job_template():
+    api = mock_api_response(
+        token='123', status=200,
+        body=json.dumps({ "meta": [], "results": { "jobTemplateUri": "jobTemplates/1" } }).encode()
+    )
+    objects = api.create_job_template({})
+    assert objects['jobTemplateUri'] == 'jobTemplates/1'
+
+def test_create_job():
+    api = mock_api_response(
+        token='123', status=200,
+        body=json.dumps({ "meta": [], "results": { "jobUri": "jobs/1" } }).encode()
+    )
+    objects = api.create_job_template({})
+    assert objects['jobUri'] == 'jobs/1'

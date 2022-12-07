@@ -14,7 +14,7 @@ setup(
     packages=['paapi'],
     install_requires=[
         'urllib3==1.19.1',
-        'certifi==2017.1.23'
+        'certifi==2022.12.7'
     ],
     url='https://github.com/ncc-tools/python-pa-api'
 )
